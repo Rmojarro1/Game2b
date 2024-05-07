@@ -13,6 +13,8 @@ class Title extends Phaser.Scene{
 
         this.titleText = this.add.text(200, 300, 'Transformers: A Game', {fontSize:'30px', fill: '#000' });  
         this.titleText.setColor('#FFFFFF');
+
+        document.getElementById('description').innerHTML = '<h2>Game2b</h2><br>W: up // S: down // Space: fire/emit'
     }
 
     update(){
