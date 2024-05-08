@@ -5,18 +5,20 @@ class Move extends Phaser.Scene{
         this.avatarX = 100; 
         this.avatarY = 430; 
 
-        this.playerSpeed = 5; 
+        this.playerSpeed = 7; 
         this.enemySpeed = 3500; 
         this.seekerSpeed = 1500; 
-        this.bulletSpeed = 5;
+        this.bulletSpeed = 10;
 
-        this.enemyBulletSpeed = -5; 
+        this.enemyBulletSpeed = -7; 
         this.enemyCooldown = 60; 
         this.enemyCooldownCounter = 0; 
-        this.seekerCooldown = 90; 
+        this.seekerCooldown = 80; 
         this.seekerCooldownCounter = 0; 
+        this.bossCooldown = 50; 
+        this.bossCooldownCounter = 0; 
 
-        this.bulletCooldown = 8;      
+        this.bulletCooldown = 15;      
         this.bulletCooldownCounter = 0;
 
         this.score = 0; 
@@ -41,7 +43,7 @@ class Move extends Phaser.Scene{
         this.load.audio("playerEx", "explosionCrunch_002.ogg");  
         this.load.audio("playerHurt", "explosionCrunch_000.ogg"); 
         this.load.audio("enemyDead", "explosionCrunch_003.ogg"); 
-
+        this.load.image("megatron", "mega.png"); 
         
     }; 
 
@@ -77,7 +79,7 @@ class Move extends Phaser.Scene{
         my.sprite.bulletGroup = this.add.group({
             active: true,
             defaultKey: "laser",
-            maxSize: 10,
+            maxSize: 5,
             runChildUpdate: true
             }
         )
@@ -160,6 +162,9 @@ class Move extends Phaser.Scene{
                 {path: [{x:750, y:300}, {x: 650, y: 200}, {x:450, y:490}, {x:300, y:300}], scale: 0.75, type: 'seeker3', speed: 1000,value:50 , ease: 'Linear'}, 
                 {path:[{x:200, y: 50}, {x: 600, y: 400},{x:200, y: 550}], scale: 0.75, type: "seeker2", speed: 1000, value:50 ,ease: 'Linear'}
             ],
+            [
+                {path: [{x: 750, y: 500}, {x: 250, y: 90}, {x: 250, y: 490}, {x:600, y: 500}], scale: 1, type: 'megatron', speed: 750, value: 100, ease: 'Linear'}
+            ],
             // Add more waves as needed...
         ];
 
@@ -174,10 +179,16 @@ class Move extends Phaser.Scene{
             active: true, 
             runChildUpdate: true
         });
+        this.boss = this.physics.add.group({
+            classType: Enemy, 
+            active: true, 
+            runChildUpdate: true
+        }); 
         
         this.physics.add.collider(my.sprite.bulletGroup,this.enemies, this.enemyHitCallback.bind(this), null, this);
         this.physics.add.collider(this.enemyLasers, my.sprite.playerSprite, this.playerHitCallback.bind(this), null, this); 
         this.physics.add.collider(my.sprite.bulletGroup, this.seekers, this.enemyHitCallback.bind(this), null, this); 
+        this.physics.add.collider(my.sprite.bulletGroup, this.boss, this.enemyHitCallback.bind(this), null, this);
 
         this.pLaserSFX = this.sound.add("laserP"); 
         this.playerDeath = this.sound.add("playerEx"); 
@@ -192,6 +203,10 @@ class Move extends Phaser.Scene{
             enemy.setScale(enemyConfig.scale);
             if(enemyConfig.type == 'seeker' || enemyConfig.type == 'seeker2' || enemyConfig.type == 'seeker3'){
                 this.seekers.add(enemy); 
+            }
+            else if(enemyConfig.type == 'megatron'){
+                enemy.enemyHealth = 15; 
+                this.boss.add(enemy); 
             }
             else{
                 this.enemies.add(enemy);
@@ -212,6 +227,7 @@ class Move extends Phaser.Scene{
         this.bulletCooldownCounter--;
         this.enemyCooldownCounter--; 
         this.seekerCooldownCounter--; 
+        this.bossCooldownCounter--; 
 
         if (this.spaceKey.isDown && my.sprite.playerSprite.active) {
             if (this.bulletCooldownCounter < 0) {
@@ -269,6 +285,53 @@ class Move extends Phaser.Scene{
                 }
             }); 
         }
+        if(this.bossCooldownCounter < 0){
+            this.bossCooldownCounter = this.bossCooldown; 
+            this.boss.getChildren().forEach((boss) => {
+                if(boss.active){
+                    let bossBulletA = this.enemyLasers.getFirstDead(); 
+                    if(bossBulletA != null){
+                        bossBulletA.makeActive(); 
+                        bossBulletA.x = boss.x; 
+                        bossBulletA.y = boss.y; 
+                        bossBulletA.speedX = -10;
+                        bossBulletA.speedY = 0; 
+                    }
+                    let bossBulletB = this.enemyLasers.getFirstDead(); 
+                    if(bossBulletB != null){
+                        bossBulletB.makeActive(); 
+                        bossBulletB.x = boss.x; 
+                        bossBulletB.y = boss.y; 
+                        bossBulletB.speedX = -10; 
+                        bossBulletB.speedY = -2
+                    }
+                    let bossBulletC = this.enemyLasers.getFirstDead(); 
+                    if(bossBulletC != null){
+                        bossBulletC.makeActive(); 
+                        bossBulletC.x = boss.x; 
+                        bossBulletC.y = boss.y; 
+                        bossBulletC.speedX = -10; 
+                        bossBulletC.speedY = 2
+                    }
+                    let bossBulletD = this.enemyLasers.getFirstDead(); 
+                    if(bossBulletD != null){
+                        bossBulletD.makeActive(); 
+                        bossBulletD.x = boss.x; 
+                        bossBulletD.y = boss.y; 
+                        bossBulletD.speedX = -10; 
+                        bossBulletD.speedY = 1; 
+                    }
+                    let bossBulletE = this.enemyLasers.getFirstDead(); 
+                    if(bossBulletE != null){
+                        bossBulletE.makeActive(); 
+                        bossBulletE.x = boss.x; 
+                        bossBulletE.y = boss.y; 
+                        bossBulletE.speedX = -10; 
+                        bossBulletE.speedY = -1; 
+                    }
+                }
+            })
+        }
 
         this.barrierGroup.getChildren().forEach((barrier) => {
             barrier.x -= 5;
@@ -280,7 +343,7 @@ class Move extends Phaser.Scene{
         this.scoreText.setText('Score: ' + this.score); 
         this.playerLife.setText('Lives: ' + my.sprite.playerSprite.returnLives()); 
 
-        if (this.checkIfInactive(this.enemies) && this.checkIfInactive(this.seekers)) {
+        if (this.checkIfInactive(this.enemies) && this.checkIfInactive(this.seekers) && this.checkIfInactive(this.boss)) {
             if (this.waves.length > 0) {
                 let nextWave = this.waves.shift();
                 this.spawnWave(nextWave);
@@ -289,12 +352,6 @@ class Move extends Phaser.Scene{
                 this.scene.start("playerWin");
             }
         }
-        /*if(this.checkIfInactive(this.enemies) && this.checkIfInactive(this.seekers)){
-            console.log("You won!");
-            this.scene.start("playerWin"); 
-        }*/
-
-        
     }; 
 
     enemyHitCallback(bullet, enemy){
@@ -305,8 +362,11 @@ class Move extends Phaser.Scene{
         console.log('Enemy hit by bullet!');
         bullet.x = 1000; 
         bullet.makeInactive();
-        enemy.setScale(enemy.scaleX * 0.9, enemy.scaleY * 0.9); 
+        //enemy.setScale(enemy.scaleX * 0.8, enemy.scaleY * 0.8); 
         enemy.takeDamage();
+        if(enemy.enemyHealth < 2){
+            enemy.setScale(enemy.scaleX * 0.8, enemy.scaleY * 0.8); 
+        }
         if(enemy.enemyHealth == 0){
                 this.updateScore(enemy.returnValue()); 
         } 

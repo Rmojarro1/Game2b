@@ -8,8 +8,11 @@ class Player extends Phaser.Physics.Arcade.Sprite{
         this.playerSpeed = playerSpeed;
         this.trailer = null; 
         this.playerHealth = 2; 
-        this.playerLives = 5; 
+        this.playerLives = 7; 
         this.respawnLocation = y; 
+        this.isInvincible = false; 
+        this.invincibleCooldownCounter = 0; 
+        this.invincibleCooldown = 120; 
 
 
         scene.physics.world.enable(this); 
@@ -27,6 +30,14 @@ class Player extends Phaser.Physics.Arcade.Sprite{
 
 
     update() {
+        if(this.isInvincible){
+            this.invincibleCooldownCounter--; 
+            if(this.invincibleCooldownCounter < 0){
+                this.invincibleCooldownCounter = this.invincibleCooldown; 
+                this.isInvincible = false; 
+            }
+        }
+        
         if(this.playerLives >= 0){
             if (this.up.isDown) {
                 if (this.y > (this.displayHeight/2)) {
@@ -57,14 +68,16 @@ class Player extends Phaser.Physics.Arcade.Sprite{
     }
 
     takeDamage(){
-        this.playerHealth -= 1; 
-        if(this.playerHealth == 1){
-            this.scene.sound.play('playerHurt'); 
-            this.trailer.visible = false; 
-        }
-        else if(this.playerHealth <= 0){
-            this.scene.sound.play('playerEx'); 
-            this.playerRespawn(); 
+        if(!this.isInvincible){ 
+            this.playerHealth -= 1; 
+            if(this.playerHealth == 1){
+                this.scene.sound.play('playerHurt'); 
+                this.trailer.visible = false; 
+            }
+            else if(this.playerHealth <= 0){
+                this.scene.sound.play('playerEx'); 
+                this.playerRespawn(); 
+            }
         }
     }
 
@@ -75,6 +88,7 @@ class Player extends Phaser.Physics.Arcade.Sprite{
     playerRespawn(){
         if(this.playerLives > 0){
             this.playerLives -= 1; 
+            this.isInvincible = true; 
             console.log("Lives: " + this.playerLives); 
             this.y = this.respawnLocation; 
             this.playerHealth = 2; 
